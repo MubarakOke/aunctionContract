@@ -1,47 +1,56 @@
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.9;
 
 library LibAppStorage {
-    uint256 constant APY = 120;
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    struct UserStake {
-        uint256 stakedTime;
-        uint256 amount;
-    }
 
-    struct Auction {
-        uint id;
-        address author;
-        uint tokenId;
-        uint startingPrice;
-        uint closeTime;
-        address nftContractAddress;
-        bool closed;
-    }
+  struct AuctionDetails {
 
-    struct Bid {
-        address author;
-        uint amount;
-        uint auctionId;
+        address auctionCreator;
+
+        address hightestBidder;
+
+        address previousBidder;
+
+        uint256 duration;
+
+        uint256 nftTokenId;
+
+        uint256 auctionId;
+
+        uint256 auctionCreatedTime;
+
+        uint256 currentBid;
+
+        uint256 minValidBid;
+
+        address lastInteractor;
+
     }
 
     struct Layout {
-        ///AUCTUIN
-        Auction[] auctions;
-        //BID
-        mapping(uint => Bid[]) bids;
-        //ERC20
+
         string name;
+
         string symbol;
+
+        uint8 decimal;
+
+        address owner; 
+
         uint256 totalSupply;
-        uint8 decimals;
-        address lastGuy;
+
+        address nftContractAddress;
+
+        address auctionTokenFacetAddress;
+
+        uint auctionCount;
+
         mapping(address => uint256) balances;
+
         mapping(address => mapping(address => uint256)) allowances;
-        //STAKING
-        address rewardToken;
-        uint256 rewardRate;
-        mapping(address => UserStake) userDetails;
-        address[] stakers;
+
+        mapping (uint => AuctionDetails) auctions;
+
     }
 
     function layoutStorage() internal pure returns (Layout storage l) {
@@ -56,13 +65,11 @@ library LibAppStorage {
         uint256 _amount
     ) internal {
         Layout storage l = layoutStorage();
-        uint256 frombalances = l.balances[msg.sender];
-        require(
-            frombalances >= _amount,
-            "ERC20: Not enough tokens to transfer"
-        );
-        l.balances[_from] = frombalances - _amount;
+        uint256 balance = l.balances[msg.sender];
+        require(balance > _amount, "Insufficient funds");
+        l.balances[_from] = balance - _amount;
         l.balances[_to] += _amount;
-        emit Transfer(_from, _to, _amount);
     }
+
+
 }

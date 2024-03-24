@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+ // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.9;
 
 /******************************************************************************\
 * Author: Nick Mudge <nick@perfectabstractions.com> (https://twitter.com/mudgen)
@@ -10,12 +10,13 @@ pragma solidity ^0.8.0;
 
 import {LibDiamond} from "./libraries/LibDiamond.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {LibAppStorage} from "./libraries/LibAppStorage.sol";
+import "../contracts/libraries/LibAppStorage.sol";
 
 contract Diamond {
-    LibAppStorage.Layout internal l;
 
-    constructor(address _contractOwner, address _diamondCutFacet) payable {
+    LibAppStorage.Layout l;
+
+    constructor(address _contractOwner, address _diamondCutFacet, uint256 _tokenTotalSupply, string memory _tokenName, string memory _tokenSymbol, uint8 _tokenDecimal, address _nftContractAddress, address _auctionTokenFacetAddress) payable {
         LibDiamond.setContractOwner(_contractOwner);
 
         // Add the diamondCut external function from the diamondCutFacet
@@ -28,11 +29,13 @@ contract Diamond {
             functionSelectors: functionSelectors
         });
         LibDiamond.diamondCut(cut, address(0), "");
-    }
-
-    function setRewardToken(address _token) public {
-        LibDiamond.enforceIsContractOwner();
-        l.rewardToken = _token;
+        l.totalSupply = _tokenTotalSupply;
+        l.name = _tokenName;
+        l.symbol = _tokenSymbol;
+        l.decimal = _tokenDecimal;
+        l.owner = msg.sender;
+        l.nftContractAddress = _nftContractAddress;
+        l.auctionTokenFacetAddress = _auctionTokenFacetAddress;
     }
 
     // Find facet for function that is called and execute the
